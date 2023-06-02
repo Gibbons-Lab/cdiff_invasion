@@ -1,0 +1,52 @@
+# Load data
+qiime tools import \
+  --type 'SampleData[SequencesWithQuality]' \
+  --input-path manifest.tsv \
+  --output-path single-end-demux.qza \
+  --input-format SingleEndFastqManifestPhred64V2
+
+# Summarise the reads
+qiime demux summarize \
+--i-data 'single-end-demux.qza' \
+--o-visualization single-end-demux-qual.qzv \
+
+# De-noise with DADA2
+qiime dada2 denoise-single \
+--p-n-threads 30 \
+--i-demultiplexed-seqs single-end-demux.qza \
+--p-trim-left 10 \
+--p-trunc-len 150 \
+--output-dir DADA2_output \
+--verbose \
+&> DADA2.log
+
+# Convert DADA2 feature table to visualization that can be downloaded as TSV
+qiime metadata tabulate \
+--m-input-file table.qza \
+--o-visualization table.qzv 
+
+#Extract V4-V5 526f-926r regions
+qiime feature-classifier extract-reads \
+  --i-sequences ncbi-refseqs.qza \
+  --p-f-primer AYTGGGYDTAAAGNG \
+  --p-r-primer CCGTCAATTYYTTTRAGTTT \
+  --p-min-length 100 \
+  --p-max-length 500 \
+  --o-reads ncbi-refseqs-520f-926r.qza
+
+# Train classifier
+qiime feature-classifier fit-classifier-naive-bayes \
+  --i-reference-reads ncbi-refseqs-520f-926r.qza \
+  --i-reference-taxonomy ncbi-refseqs-taxonomy.qza \
+  --o-classifier ncbi-refseqs-520f-926r-classifier.qza
+
+# Map taxonomy to DADA2 ASVs
+qiime feature-classifier classify-sklearn \
+--i-classifier ../ncbi-refseqs-515f-806r-classifier.qza \
+--i-reads representative_sequences.qza \
+--o-classification ncbi-taxonomy.qza
+
+# Convert taxonomy to visualization that can be downloaded as TSV
+qiime metadata tabulate \
+--m-input-file ncbi-taxonomy.qza \
+--o-visualization ncbi-taxonomy.qzv
