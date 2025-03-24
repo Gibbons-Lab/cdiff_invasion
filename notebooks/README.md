@@ -5,3 +5,5 @@ This directory contain python code used to generate manuscript figures
 * Arivale_associations_analysis.ipynb provides code for association of predicted growth rate with lifestlye, blood metabolite, and clinical lab meta information 
 * Global_Analysis.ipynb provides code for analysis integrating information across datasets
 * venturelli_Analysis.ipynb provides code for analysis of in-vitro SynCom data
+* nat_medicine_analysis.ipynb provides code for analysis of FMT metagenomics data.
+* FVA.ipynb and fva.py provide code for the flux variability analysis of the Weingarden_et_al data.
